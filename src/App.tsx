@@ -1,13 +1,14 @@
 import "./styles.css";
-import { MaterialDialogProvider } from "./MaterialDialog";
+
+import { DialogProvider } from "./MaterialDialog";
 import { Nested } from "./Nested";
 
 export default function App() {
   return (
     <div className="App">
-      <MaterialDialogProvider>
+      <DialogProvider>
         <Nested />
-      </MaterialDialogProvider>
+      </DialogProvider>
     </div>
   );
 }

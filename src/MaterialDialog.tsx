@@ -1,5 +1,6 @@
 import {
   Button,
+  ButtonProps,
   Dialog,
   DialogActions,
   DialogActionsProps,
@@ -24,90 +25,95 @@ import { createContext, useContext } from "react";
  *
  */
 
-type MaterialDialogValue = {
-  open: boolean;
+type DialogOptions = Partial<{
+  // handlers
+  onSubmit: (e: React.FormEvent) => Promise<any>;
+  // Dialog content
   title: string | React.Component;
   contentText: string | React.Component;
+  cancelButtonText: string | React.Component;
   actionButtonText: string | React.Component;
-  handleSubmit: (e: React.FormEvent) => Promise<any>;
-  closeDialog: () => Promise<void>;
-  openDialog?: (x: any) => any;
-  dialogProps?: DialogProps;
-  dialogTitleProps?: DialogTitleProps;
-  dialogContentProps?: DialogContentProps;
-  dialogContentTextProps?: DialogContentTextProps;
-  dialogActionsProps?: DialogActionsProps;
-};
+  // subcomponent props
+  dialogProps: Omit<DialogProps, "open">;
+  dialogTitleProps: DialogTitleProps;
+  dialogContentProps: DialogContentProps;
+  dialogContentTextProps: DialogContentTextProps;
+  dialogActionsProps: DialogActionsProps;
+  cancelButtonProps: ButtonProps;
+  actionButtonProps: ButtonProps;
+}>;
 
-const initialState: MaterialDialogValue = {
-  open: false,
-  title: "Dialog Title",
-  contentText: "Dialog Content Text",
-  actionButtonText: "Submit",
-  handleSubmit: async (e) => e.preventDefault(),
-  closeDialog: () => Promise.resolve(),
-};
+type DialogState = { open: boolean } & DialogOptions;
 
-type ActionOpen = {
+type OpenDialogAction = {
   type: "open";
-  payload: Omit<MaterialDialogValue, "open">;
+  payload: DialogOptions;
 };
 
-type ActionClose = {
+type CloseDialogAction = {
   type: "close";
   payload?: undefined;
 };
+type Actions = OpenDialogAction | CloseDialogAction;
 
-type Actions = ActionOpen | ActionClose;
-
-const reducer = (
-  state: MaterialDialogValue,
-  action: Actions
-): MaterialDialogValue => {
+const reducer = (state: DialogState, action: Actions): DialogState => {
   switch (action.type) {
     case "open":
-      console.log({ action });
-      return { ...action.payload, open: true };
+      console.log({ state, "action.payload": action.payload });
+      return { ...state, ...action.payload, open: true };
     case "close":
-      console.log({ action });
-      const { open: _unused, ...rest } = state;
-      return { open: false, ...rest };
+      return { ...state, open: false };
     default:
-      console.log({ action });
       return state;
   }
 };
 
-const MaterialDialogContext = createContext<MaterialDialogValue>(initialState);
+const initialState: DialogState = {
+  open: false,
+  title: "Dialog Title",
+  contentText: "Dialog Content Text",
+  cancelButtonText: "Cancel",
+  actionButtonText: "Submit",
+  onSubmit: async (e: React.FormEvent) => e.preventDefault(),
+  dialogProps: {
+    fullWidth: true,
+    maxWidth: "sm",
+  },
+};
 
-export const MaterialDialogProvider: React.FC = ({ children }) => {
+type ContextType = {
+  openDialog: (options: DialogOptions) => any;
+};
+
+const DialogContext = createContext<ContextType>({ openDialog: () => null });
+
+export const DialogProvider: React.FC = ({ children }) => {
   const [value, dispatch] = useReducer(reducer, initialState);
   const {
     open,
+    onSubmit,
     title,
     contentText,
+    cancelButtonText,
     actionButtonText,
-    handleSubmit,
     dialogProps,
     dialogTitleProps,
     dialogContentProps,
     dialogActionsProps,
+    cancelButtonProps,
+    actionButtonProps,
   } = value;
 
-  const openDialog = (
-    materialDialogOptions: Partial<Omit<MaterialDialogValue, "open">>
-  ) =>
-    dispatch({
-      type: "open",
-      payload: { ...initialState, ...materialDialogOptions },
-    });
-
+  const openDialog = (options: DialogOptions) =>
+    dispatch({ type: "open", payload: options });
   const closeDialog = () => dispatch({ type: "close" });
-
-  console.log({ open });
+  const handleSubmit = (e: React.FormEvent) => {
+    if (!onSubmit) return e.preventDefault();
+    onSubmit(e).then(closeDialog);
+  };
 
   return (
-    <MaterialDialogContext.Provider value={{ ...value, openDialog }}>
+    <DialogContext.Provider value={{ openDialog }}>
       {children}
       <Dialog open={open} {...dialogProps} aria-labelledby="form-dialog-title">
         <DialogTitle {...dialogTitleProps}>{title}</DialogTitle>
@@ -124,17 +130,21 @@ export const MaterialDialogProvider: React.FC = ({ children }) => {
             />
           </DialogContent>
           <DialogActions {...dialogActionsProps}>
-            <Button onClick={closeDialog} color="primary">
-              Cancel
+            <Button
+              onClick={closeDialog}
+              color="primary"
+              {...cancelButtonProps}
+            >
+              {cancelButtonText}
             </Button>
-            <Button type="submit" color="primary">
+            <Button type="submit" color="primary" {...actionButtonProps}>
               {actionButtonText}
             </Button>
           </DialogActions>
         </form>
       </Dialog>
-    </MaterialDialogContext.Provider>
+    </DialogContext.Provider>
   );
 };
 
-export const useMaterialDialog = () => useContext(MaterialDialogContext);
+export const useDialog = () => useContext(DialogContext);
