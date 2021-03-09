@@ -30,9 +30,9 @@ type DialogOptions = Partial<{
   onSubmit: (e: React.FormEvent) => Promise<any>;
   // Dialog content
   title: string | React.Component;
-  contentText: string | React.Component;
-  cancelButtonText: string | React.Component;
-  actionButtonText: string | React.Component;
+  content: string | React.Component;
+  cancelButton: string | React.Component;
+  actionButton: string | React.Component;
   // subcomponent props
   dialogProps: Omit<DialogProps, "open">;
   dialogTitleProps: DialogTitleProps;
@@ -59,7 +59,6 @@ type Actions = OpenDialogAction | CloseDialogAction;
 const reducer = (state: DialogState, action: Actions): DialogState => {
   switch (action.type) {
     case "open":
-      console.log({ state, "action.payload": action.payload });
       return { ...state, ...action.payload, open: true };
     case "close":
       return { ...state, open: false };
@@ -71,9 +70,9 @@ const reducer = (state: DialogState, action: Actions): DialogState => {
 const initialState: DialogState = {
   open: false,
   title: "Dialog Title",
-  contentText: "Dialog Content Text",
-  cancelButtonText: "Cancel",
-  actionButtonText: "Submit",
+  content: "Dialog Content Text",
+  cancelButton: "Cancel",
+  actionButton: "Submit",
   onSubmit: async (e: React.FormEvent) => e.preventDefault(),
   dialogProps: {
     fullWidth: true,
@@ -93,9 +92,9 @@ export const DialogProvider: React.FC = ({ children }) => {
     open,
     onSubmit,
     title,
-    contentText,
-    cancelButtonText,
-    actionButtonText,
+    content,
+    cancelButton,
+    actionButton,
     dialogProps,
     dialogTitleProps,
     dialogContentProps,
@@ -119,7 +118,7 @@ export const DialogProvider: React.FC = ({ children }) => {
         <DialogTitle {...dialogTitleProps}>{title}</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent {...dialogContentProps}>
-            <DialogContentText>{contentText}</DialogContentText>
+            <DialogContentText>{content}</DialogContentText>
             <TextField
               autoFocus
               margin="dense"
@@ -135,10 +134,10 @@ export const DialogProvider: React.FC = ({ children }) => {
               color="primary"
               {...cancelButtonProps}
             >
-              {cancelButtonText}
+              {cancelButton}
             </Button>
             <Button type="submit" color="primary" {...actionButtonProps}>
-              {actionButtonText}
+              {actionButton}
             </Button>
           </DialogActions>
         </form>

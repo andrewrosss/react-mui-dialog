@@ -18,8 +18,8 @@ export const Nested = () => {
   const handleClick = () => {
     openDialog({
       title: "Confirm Action",
-      contentText: "Do you want to continue?",
-      actionButtonText: "Yes",
+      content: "Do you want to continue?",
+      actionButton: "Yes",
       actionButtonProps: {
         variant: "contained",
         disableElevation: true,
