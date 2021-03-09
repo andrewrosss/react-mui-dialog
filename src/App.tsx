@@ -1,4 +1,4 @@
-import { DialogProvider } from "./MaterialDialog";
+import { DialogProvider } from "./Dialog";
 import { Nested } from "./Nested";
 
 export default function App() {
