@@ -8,6 +8,7 @@ import {
   TextField,
   Typography,
   makeStyles,
+  withStyles,
 } from "@material-ui/core";
 import React, { useState } from "react";
 
@@ -33,59 +34,74 @@ export const Nested = () => {
     },
   }))();
 
-  const deleteDocument = (id: any) => async () => {
-    alert(`deleted document: ${id}`);
+  const openNotificationDialog = () => {
+    openDialog({
+      title: "Version 2.11.3",
+      contentText: "Here's what's new in version 2.11.3! ...",
+      cancelButton: false,
+      submitButton: { children: "OK" },
+    });
   };
 
-  const openDeleteDialog = () => {
+  const deleteDocument = (id: any) => async () => {
+    alert(`Deleted document with ID [${id}]`);
+  };
+
+  const openDeleteDialog = (id: string, name: string) => () => {
     openDialog({
-      title: "Delete Document",
-      content: "Are you sure you want to delete this document?",
-      actionButton: "Delete",
-      actionButtonProps: {
-        variant: "outlined",
+      title: "Delete This Document?",
+      contentText: (
+        <>
+          This cannot be undone. Type the text <b>{name}</b> to proceed.
+        </>
+      ),
+      submitButton: {
+        component: (
+          <ErrorButton variant="contained" type="submit">
+            Delete
+          </ErrorButton>
+        ),
       },
-      initialValues: {
-        confirmationText: "",
+      fields: {
+        confirmationText: {
+          initialValue: "",
+          validationSchema: Yup.string()
+            .required("Re-type the document name")
+            .equals([name], "Input must match document name"),
+          fieldProps: { label: `Type ${name} to delete` },
+        },
       },
-      validationSchema: Yup.object({
-        confirmationText: Yup.string()
-          .required("Re-type the document name")
-          .equals(["mydocument"], "document name must match"),
-      }),
-      labels: {
-        confirmationText: `Type ${"mydocument"} to delete`,
-      },
-      onSubmit: deleteDocument("asdkfhaskdfasl"),
+      onSubmit: deleteDocument(id),
     });
   };
 
   const openSignupDialog = () => {
     openDialog({
       title: "Signup",
-      content: "Just one more step, create your account and get started!",
-      actionButton: "Signup",
-      actionButtonProps: {
-        variant: "contained",
+      contentText: "Just one more step, create your account and get started!",
+      submitButton: { children: "Signup", props: { variant: "contained" } },
+      fields: {
+        email: {
+          initialValue: "",
+          validationSchema: Yup.string().email().required(),
+          fieldProps: { label: "Email" },
+        },
+        firstName: {
+          initialValue: "",
+          validationSchema: Yup.string().required(),
+          fieldProps: { label: "First name" },
+        },
+        lastName: {
+          initialValue: "",
+          validationSchema: Yup.string().required(),
+          fieldProps: { label: "Last name" },
+        },
+        password: {
+          initialValue: "",
+          validationSchema: Yup.string().min(10).required(),
+          fieldProps: { label: "Password", type: "password" },
+        },
       },
-      initialValues: {
-        email: "",
-        firstName: "",
-        lastName: "",
-        password: "",
-      },
-      labels: {
-        email: "Email",
-        firstName: "First Name",
-        lastName: "Last Name",
-        password: "Password",
-      },
-      validationSchema: Yup.object({
-        email: Yup.string().email().required(),
-        firstName: Yup.string().required(),
-        lastName: Yup.string().required(),
-        password: Yup.string().min(10).required(),
-      }),
       onSubmit: async ({ email, firstName, lastName, password }) => {
         alert(
           `${firstName} ${lastName} just signed up with email [${email}] and password [${password}]`
@@ -96,17 +112,18 @@ export const Nested = () => {
 
   const openCustomFormDialog = () => {
     openDialog({
-      customForm: <CustomForm onClose={closeDialog} />,
+      customContent: <CustomForm onClose={closeDialog} />,
     });
   };
 
   return (
     <Container className={classes.root}>
+      <Button onClick={openNotificationDialog}>View</Button>
       <Button
         variant="outlined"
         color="primary"
         className={classes.deleteButton}
-        onClick={openDeleteDialog}
+        onClick={openDeleteDialog("xzvf", "My Document")}
       >
         Delete
       </Button>
@@ -186,3 +203,14 @@ const CustomForm: React.FC<{ onClose: any }> = ({ onClose }) => {
     </form>
   );
 };
+
+const ErrorButton = withStyles((theme) => ({
+  root: {
+    backgroundColor: "crimson",
+    color: theme.palette.getContrastText(theme.palette.error.main),
+    "&:hover": {
+      backgroundColor: "crimson",
+      opacity: 0.8,
+    },
+  },
+}))(Button);
