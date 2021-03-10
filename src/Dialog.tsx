@@ -14,69 +14,84 @@ import {
   DialogTitle,
   DialogTitleProps,
 } from "@material-ui/core";
-import { Field, Form, Formik, FormikHelpers } from "formik";
+import { Field, FieldAttributes, Form, Formik, FormikHelpers } from "formik";
 import React, { useReducer } from "react";
 import { createContext, useContext } from "react";
 
 import { TextField } from "formik-material-ui";
 
+type FieldOptions = {
+  initialValue: any;
+  validationSchema?: Yup.AnySchema;
+  fieldProps?: FieldAttributes<any>;
+  component?: typeof Field;
+};
+
+type DialogActionButton =
+  | false
+  | { children: string | React.ReactNode; props?: ButtonProps }
+  | { component: React.ReactNode };
+
+// type DialogOptions<
+//   Fields extends { [name: string]: FieldOptions },
+//   Values = Record<keyof Fields, string>
+// > = Partial<{
+//   title: string | React.ReactNode;
+//   contentText: string | React.ReactNode;
+//   fields: Fields;
+//   cancelButton: DialogActionButton;
+//   submitButton: DialogActionButton;
+//   onSubmit: (
+//     values: Values,
+//     formikHelpers: FormikHelpers<Values>
+//   ) => Promise<any>;
+//   dialogProps: Omit<DialogProps, "open">;
+//   subcomponentProps: {
+//     dialogTitleProps: DialogTitleProps;
+//     dialogContentProps: DialogContentProps;
+//     dialogContentTextProps: DialogContentTextProps;
+//     dialogActionsProps: DialogActionsProps;
+//   };
+//   customContent: undefined | React.ReactNode;
+// }>;
+
 type OpenDialog = <
-  Values extends { [K: string]: string },
-  Labels extends Record<keyof Values, string>,
-  ValidationSchema extends Yup.ObjectSchema<Record<keyof Values, Yup.AnySchema>>
+  Fields extends { [name: string]: FieldOptions },
+  Values extends Record<keyof Fields, string>
 >(
   options: Partial<{
-    // form configuration
-    initialValues: Values;
-    labels: Labels;
-    validationSchema: undefined | ValidationSchema;
-    // handlers
+    title: string | React.ReactNode;
+    contentText: string | React.ReactNode;
+    fields: Fields;
+    cancelButton: DialogActionButton;
+    submitButton: DialogActionButton;
     onSubmit: (
       values: Values,
       formikHelpers: FormikHelpers<Values>
     ) => Promise<any>;
-    // Dialog content
-    title: string | React.ReactNode;
-    content: string | React.ReactNode;
-    cancelButton: string | React.ReactNode;
-    actionButton: string | React.ReactNode;
-    // subcomponent props
     dialogProps: Omit<DialogProps, "open">;
-    dialogTitleProps: DialogTitleProps;
-    dialogContentProps: DialogContentProps;
-    dialogContentTextProps: DialogContentTextProps;
-    dialogActionsProps: DialogActionsProps;
-    cancelButtonProps: ButtonProps;
-    actionButtonProps: ButtonProps;
-    // enable user to pass a totally custom form
-    customForm: undefined | React.ReactNode;
+    subcomponentProps: Partial<{
+      dialogTitleProps: DialogTitleProps;
+      dialogContentProps: DialogContentProps;
+      dialogContentTextProps: DialogContentTextProps;
+      dialogActionsProps: DialogActionsProps;
+    }>;
+    customContent: undefined | React.ReactNode;
   }>
 ) => void;
 
-type CloseDialog = () => any;
-
 type DialogOptions = Parameters<OpenDialog>[0];
-
-type DialogState = { open: boolean } & DialogOptions;
 
 type OpenDialogAction = {
   type: "open";
   payload: DialogOptions;
 };
-
-type CloseDialogAction = {
-  type: "close";
-  payload?: undefined;
-};
-
-type ResetDialogAction = {
-  type: "reset";
-  payload?: undefined;
-};
-
+type CloseDialogAction = { type: "close" };
+type ResetDialogAction = { type: "reset" };
 type Actions = OpenDialogAction | CloseDialogAction | ResetDialogAction;
+type State = { open: boolean } & DialogOptions;
 
-const reducer = (state: DialogState, action: Actions): DialogState => {
+const reducer = (state: State, action: Actions): State => {
   switch (action.type) {
     case "open":
       return { ...state, ...action.payload, open: true };
@@ -89,32 +104,30 @@ const reducer = (state: DialogState, action: Actions): DialogState => {
   }
 };
 
-const initialState: DialogState = {
+const initialState: State = {
   open: false,
   title: "Dialog Title",
-  content: "Dialog Content Text",
-  cancelButton: "Cancel",
-  actionButton: "Submit",
-  initialValues: {},
-  labels: {},
-  validationSchema: undefined,
-  onSubmit: (a, b) => Promise.resolve(),
+  contentText: "Dialog content text",
+  cancelButton: { children: "Cancel" },
+  submitButton: { children: "Submit" },
+  fields: {},
+  onSubmit: () => Promise.resolve(),
   dialogProps: {
     fullWidth: true,
     maxWidth: "sm",
   },
-  dialogTitleProps: {},
-  dialogContentProps: {},
-  dialogContentTextProps: {},
-  dialogActionsProps: {},
-  cancelButtonProps: {},
-  actionButtonProps: {},
-  customForm: undefined,
+  subcomponentProps: {
+    dialogTitleProps: {},
+    dialogContentProps: {},
+    dialogContentTextProps: {},
+    dialogActionsProps: {},
+  },
+  customContent: undefined,
 };
 
 type ContextType = {
   openDialog: OpenDialog;
-  closeDialog: CloseDialog;
+  closeDialog: () => void;
 };
 
 const DialogContext = createContext<ContextType>({
@@ -127,22 +140,18 @@ export const DialogProvider: React.FC = ({ children }) => {
   const {
     open,
     onSubmit,
-    initialValues = {},
-    labels,
-    validationSchema,
     title,
-    content,
+    contentText,
+    fields,
     cancelButton,
-    actionButton,
+    submitButton,
     dialogProps,
-    dialogTitleProps,
-    dialogContentProps,
-    dialogContentTextProps,
-    dialogActionsProps,
-    cancelButtonProps,
-    actionButtonProps,
-    customForm,
+    subcomponentProps: sp,
+    customContent,
   } = value;
+
+  const initialValues = getInitialValues(fields);
+  const validationSchema = getValidationSchema(fields);
 
   const openDialog: OpenDialog = (options) =>
     dispatch({ type: "open", payload: options as DialogOptions });
@@ -152,8 +161,9 @@ export const DialogProvider: React.FC = ({ children }) => {
     values: typeof initialValues,
     formikHelpers: FormikHelpers<typeof initialValues>
   ) => {
-    console.log("made it");
+    console.log(!onSubmit);
     if (!onSubmit) return;
+    console.log("made it");
     onSubmit(values, formikHelpers).then(closeDialog);
   };
 
@@ -164,12 +174,29 @@ export const DialogProvider: React.FC = ({ children }) => {
     marginBottom: "16px",
   } as const;
 
+  const fieldComponents = Object.entries(
+    fields ?? {}
+  ).map(([name, fieldOptions]) =>
+    React.isValidElement(fieldOptions.component) ? (
+      fieldOptions.component
+    ) : (
+      <Field
+        component={TextField}
+        variant="outlined"
+        fullwidth
+        {...fieldOptions.fieldProps}
+        name={name}
+        key={name}
+      />
+    )
+  );
+
   return (
     <DialogContext.Provider value={{ openDialog, closeDialog }}>
       {children}
       <Dialog open={open} onExited={handleExited} {...dialogProps}>
-        {customForm ? (
-          customForm
+        {customContent ? (
+          customContent
         ) : (
           <Formik
             initialValues={initialValues}
@@ -179,43 +206,42 @@ export const DialogProvider: React.FC = ({ children }) => {
           >
             {(formProps) => (
               <Form>
-                <DialogTitle {...dialogTitleProps}>{title}</DialogTitle>
+                <DialogTitle {...sp?.dialogTitleProps}>{title}</DialogTitle>
                 <DialogContent
                   style={dialogContentStyle}
-                  {...dialogContentProps}
+                  {...sp?.dialogContentProps}
                 >
-                  <DialogContentText {...dialogContentTextProps}>
-                    {content}
+                  <DialogContentText {...sp?.dialogContentTextProps}>
+                    {contentText}
                   </DialogContentText>
-                  {!!Object.keys(initialValues ?? {}).length &&
-                    Object.keys(initialValues).map((k) => (
-                      <Field
-                        component={TextField}
-                        label={labels?.[k]}
-                        name={k}
-                        variant="outlined"
-                        fullwidth
-                        type={k === "password" ? "password" : "text"}
-                      />
-                    ))}
+                  {!!fieldComponents.length && fieldComponents}
                 </DialogContent>
-                <DialogActions {...dialogActionsProps}>
-                  <Button
-                    onClick={closeDialog}
-                    color="primary"
-                    disabled={formProps.isSubmitting}
-                    {...cancelButtonProps}
-                  >
-                    {cancelButton}
-                  </Button>
-                  <Button
-                    type="submit"
-                    color="primary"
-                    disabled={formProps.isSubmitting || !formProps.isValid}
-                    {...actionButtonProps}
-                  >
-                    {actionButton}
-                  </Button>
+                <DialogActions {...sp?.dialogActionsProps}>
+                  {actionButtonHasComponent(cancelButton) ? (
+                    cancelButton.component
+                  ) : cancelButton ? (
+                    <Button
+                      onClick={closeDialog}
+                      color="primary"
+                      disabled={formProps.isSubmitting}
+                      {...cancelButton.props}
+                    >
+                      {cancelButton.children}
+                    </Button>
+                  ) : null}
+                  {actionButtonHasComponent(submitButton) ? (
+                    submitButton.component
+                  ) : submitButton ? (
+                    <Button
+                      type="submit"
+                      color="primary"
+                      onClick={closeDialog}
+                      disabled={formProps.isSubmitting}
+                      {...submitButton.props}
+                    >
+                      {submitButton.children}
+                    </Button>
+                  ) : null}
                 </DialogActions>
               </Form>
             )}
@@ -227,5 +253,30 @@ export const DialogProvider: React.FC = ({ children }) => {
 };
 
 export const useDialog = () => useContext(DialogContext);
+
+const getInitialValues = (fields: DialogOptions["fields"]) => {
+  return Object.fromEntries(
+    Object.entries(fields ?? {}).map(([name, fieldOptions]) => [
+      name,
+      fieldOptions.initialValue,
+    ])
+  );
+};
+
+const getValidationSchema = (fields: DialogOptions["fields"]) => {
+  return Yup.object(
+    Object.fromEntries(
+      Object.entries(fields ?? {})
+        .map(([name, fieldOptions]) => [name, fieldOptions?.validationSchema])
+        .filter(([_, v]) => !!v)
+    )
+  );
+};
+
+function actionButtonHasComponent(
+  button: any
+): button is { component: React.ReactNode } {
+  return !!button?.component && React.isValidElement(button.component);
+}
 
 // _app.tsx
