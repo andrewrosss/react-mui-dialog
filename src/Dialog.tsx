@@ -13,6 +13,7 @@ import {
   DialogProps,
   DialogTitle,
   DialogTitleProps,
+  makeStyles,
 } from "@material-ui/core";
 import { Field, FieldAttributes, Form, Formik, FormikHelpers } from "formik";
 import React, { useReducer } from "react";
@@ -114,9 +115,19 @@ const DialogContext = createContext<ContextType>({
   closeDialog: () => null,
 });
 
+const useStyles = makeStyles((theme) => ({
+  dialogContent: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+    marginBottom: "16px",
+  },
+}));
+
 export const DialogProvider: React.FC = ({ children }) => {
   // The warning [Warning: findDOMNode is deprecated in StrictMode.] is a known issue:
   // https://stackoverflow.com/a/63729408
+  const classes = useStyles();
   const [value, dispatch] = useReducer(reducer, initialState);
   const {
     open,
@@ -142,18 +153,9 @@ export const DialogProvider: React.FC = ({ children }) => {
     values: typeof initialValues,
     formikHelpers: FormikHelpers<typeof initialValues>
   ) => {
-    console.log(!onSubmit);
     if (!onSubmit) return;
-    console.log("made it");
     onSubmit(values, formikHelpers).then(closeDialog);
   };
-
-  const dialogContentStyle = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-    marginBottom: "16px",
-  } as const;
 
   const fieldComponents = Object.entries(
     fields ?? {}
@@ -190,7 +192,7 @@ export const DialogProvider: React.FC = ({ children }) => {
                 <DialogTitle {...sp?.dialogTitleProps}>{title}</DialogTitle>
 
                 <DialogContent
-                  style={dialogContentStyle}
+                  className={classes.dialogContent}
                   {...sp?.dialogContentProps}
                 >
                   <DialogContentText {...sp?.dialogContentTextProps}>
