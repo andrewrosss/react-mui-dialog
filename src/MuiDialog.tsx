@@ -1,4 +1,4 @@
-import * as Yup from "yup";
+import * as Yup from 'yup';
 
 import {
   Button,
@@ -14,19 +14,19 @@ import {
   DialogTitle,
   DialogTitleProps,
   makeStyles,
-} from "@material-ui/core";
-import { Field, FieldAttributes, Form, Formik, FormikHelpers } from "formik";
-import React, { useReducer } from "react";
-import { createContext, useContext } from "react";
+} from '@material-ui/core';
+import { Field, FieldAttributes, Form, Formik, FormikHelpers } from 'formik';
+import React, { useReducer } from 'react';
+import { createContext, useContext } from 'react';
 
-import { TextField } from "formik-material-ui";
+import { TextField } from 'formik-material-ui';
 
-type ActionButtonOptions =
+export type ActionButtonOptions =
   | false
   | { children: string | React.ReactNode; props?: ButtonProps }
   | { component: React.ReactNode };
 
-type FieldOptions<T extends string = string> = Record<
+export type FieldOptions<T extends string = string> = Record<
   T,
   {
     initialValue: any;
@@ -36,7 +36,7 @@ type FieldOptions<T extends string = string> = Record<
   }
 >;
 
-type DialogOptions<
+export type DialogOptions<
   FieldNames extends string = string,
   Fields = FieldOptions<FieldNames>,
   Values = Record<keyof Fields, string>
@@ -50,7 +50,7 @@ type DialogOptions<
     values: Values,
     formikHelpers: FormikHelpers<Values>
   ) => Promise<any>;
-  dialogProps: Omit<DialogProps, "open">;
+  dialogProps: Omit<DialogProps, 'open'>;
   subcomponentProps: {
     dialogTitleProps: DialogTitleProps;
     dialogContentProps: DialogContentProps;
@@ -61,21 +61,21 @@ type DialogOptions<
 }>;
 
 type OpenDialogAction = {
-  type: "open";
+  type: 'open';
   payload: DialogOptions;
 };
-type CloseDialogAction = { type: "close" };
-type ResetDialogAction = { type: "reset" };
+type CloseDialogAction = { type: 'close' };
+type ResetDialogAction = { type: 'reset' };
 type Actions = OpenDialogAction | CloseDialogAction | ResetDialogAction;
 type State = { open: boolean } & DialogOptions;
 
 const reducer = (state: State, action: Actions): State => {
   switch (action.type) {
-    case "open":
+    case 'open':
       return { ...state, ...action.payload, open: true };
-    case "close":
+    case 'close':
       return { ...state, open: false };
-    case "reset":
+    case 'reset':
       return { ...state, ...initialState };
     default:
       return state;
@@ -84,15 +84,15 @@ const reducer = (state: State, action: Actions): State => {
 
 const initialState: State = {
   open: false,
-  title: "Dialog Title",
-  contentText: "Dialog content text",
-  cancelButton: { children: "Cancel" },
-  submitButton: { children: "Submit" },
+  title: 'Dialog Title',
+  contentText: 'Dialog content text',
+  cancelButton: { children: 'Cancel' },
+  submitButton: { children: 'Submit' },
   fields: {},
   onSubmit: () => Promise.resolve(),
   dialogProps: {
     fullWidth: true,
-    maxWidth: "sm",
+    maxWidth: 'sm',
   },
   subcomponentProps: {
     dialogTitleProps: {},
@@ -103,7 +103,7 @@ const initialState: State = {
   customContent: undefined,
 };
 
-type OpenDialog = <T extends string>(options: DialogOptions<T>) => void;
+export type OpenDialog = <T extends string>(options: DialogOptions<T>) => void;
 
 type ContextType = {
   openDialog: OpenDialog;
@@ -115,12 +115,12 @@ const DialogContext = createContext<ContextType>({
   closeDialog: () => null,
 });
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   dialogContent: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-    marginBottom: "16px",
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing(2),
+    marginBottom: theme.spacing(2),
   },
 }));
 
@@ -145,10 +145,10 @@ export const DialogProvider: React.FC = ({ children }) => {
   const initialValues = getInitialValues(fields);
   const validationSchema = getValidationSchema(fields);
 
-  const openDialog: OpenDialog = (options) =>
-    dispatch({ type: "open", payload: options as DialogOptions });
-  const closeDialog = () => dispatch({ type: "close" });
-  const handleExited = () => dispatch({ type: "reset" });
+  const openDialog: OpenDialog = options =>
+    dispatch({ type: 'open', payload: options as DialogOptions });
+  const closeDialog = () => dispatch({ type: 'close' });
+  const handleExited = () => dispatch({ type: 'reset' });
   const handleSubmit = (
     values: typeof initialValues,
     formikHelpers: FormikHelpers<typeof initialValues>
@@ -187,7 +187,7 @@ export const DialogProvider: React.FC = ({ children }) => {
             onSubmit={handleSubmit}
             validateOnChange={false}
           >
-            {(formProps) => (
+            {formProps => (
               <Form>
                 <DialogTitle {...sp?.dialogTitleProps}>{title}</DialogTitle>
 
@@ -238,7 +238,7 @@ export const DialogProvider: React.FC = ({ children }) => {
 
 export const useDialog = () => useContext(DialogContext);
 
-const getInitialValues = (fields: DialogOptions["fields"]) => {
+const getInitialValues = (fields: DialogOptions['fields']) => {
   return Object.fromEntries(
     Object.entries(fields ?? {}).map(([name, fieldOptions]) => [
       name,
@@ -247,7 +247,7 @@ const getInitialValues = (fields: DialogOptions["fields"]) => {
   );
 };
 
-const getValidationSchema = (fields: DialogOptions["fields"]) => {
+const getValidationSchema = (fields: DialogOptions['fields']) => {
   return Yup.object(
     Object.fromEntries(
       Object.entries(fields ?? {})
@@ -262,5 +262,3 @@ function actionButtonHasComponent(
 ): button is { component: React.ReactNode } {
   return !!button?.component && React.isValidElement(button.component);
 }
-
-// _app.tsx
