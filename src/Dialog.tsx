@@ -20,69 +20,44 @@ import { createContext, useContext } from "react";
 
 import { TextField } from "formik-material-ui";
 
-type DialogFields = {
-  [name: string]: {
-    initialValue: any;
-    validationSchema?: Yup.AnySchema;
-    fieldProps?: FieldAttributes<any>;
-    component?: typeof Field;
-  };
-};
-
-type DialogActionButton =
+type ActionButtonOptions =
   | false
   | { children: string | React.ReactNode; props?: ButtonProps }
   | { component: React.ReactNode };
 
-// type DialogOptions<
-//   Fields extends DialogFields = DialogFields,
-//   Values = Record<keyof Fields, string>
-// > = Partial<{
-//   title: string | React.ReactNode;
-//   contentText: string | React.ReactNode;
-//   fields: Fields;
-//   cancelButton: DialogActionButton;
-//   submitButton: DialogActionButton;
-//   onSubmit: (
-//     values: Values,
-//     formikHelpers: FormikHelpers<Values>
-//   ) => Promise<any>;
-//   dialogProps: Omit<DialogProps, "open">;
-//   subcomponentProps: {
-//     dialogTitleProps: DialogTitleProps;
-//     dialogContentProps: DialogContentProps;
-//     dialogContentTextProps: DialogContentTextProps;
-//     dialogActionsProps: DialogActionsProps;
-//   };
-//   customContent: undefined | React.ReactNode;
-// }>;
+type FieldOptions<T extends string = string> = Record<
+  T,
+  {
+    initialValue: any;
+    validationSchema?: Yup.AnySchema;
+    fieldProps?: FieldAttributes<any>;
+    component?: typeof Field;
+  }
+>;
 
-type OpenDialog = <
-  Fields extends DialogFields,
-  Values extends Record<keyof Fields, string>
->(
-  options: Partial<{
-    title: string | React.ReactNode;
-    contentText: string | React.ReactNode;
-    fields: Fields;
-    cancelButton: DialogActionButton;
-    submitButton: DialogActionButton;
-    onSubmit: (
-      values: Values,
-      formikHelpers: FormikHelpers<Values>
-    ) => Promise<any>;
-    dialogProps: Omit<DialogProps, "open">;
-    subcomponentProps: Partial<{
-      dialogTitleProps: DialogTitleProps;
-      dialogContentProps: DialogContentProps;
-      dialogContentTextProps: DialogContentTextProps;
-      dialogActionsProps: DialogActionsProps;
-    }>;
-    customContent: undefined | React.ReactNode;
-  }>
-) => void;
-
-type DialogOptions = Parameters<OpenDialog>[0];
+type DialogOptions<
+  FieldNames extends string = string,
+  Fields = FieldOptions<FieldNames>,
+  Values = Record<keyof Fields, string>
+> = Partial<{
+  title: string | React.ReactNode;
+  contentText: string | React.ReactNode;
+  fields: Fields;
+  cancelButton: ActionButtonOptions;
+  submitButton: ActionButtonOptions;
+  onSubmit: (
+    values: Values,
+    formikHelpers: FormikHelpers<Values>
+  ) => Promise<any>;
+  dialogProps: Omit<DialogProps, "open">;
+  subcomponentProps: {
+    dialogTitleProps: DialogTitleProps;
+    dialogContentProps: DialogContentProps;
+    dialogContentTextProps: DialogContentTextProps;
+    dialogActionsProps: DialogActionsProps;
+  };
+  customContent: undefined | React.ReactNode;
+}>;
 
 type OpenDialogAction = {
   type: "open";
@@ -126,6 +101,8 @@ const initialState: State = {
   },
   customContent: undefined,
 };
+
+type OpenDialog = <T extends string>(options: DialogOptions<T>) => void;
 
 type ContextType = {
   openDialog: OpenDialog;
@@ -211,6 +188,7 @@ export const DialogProvider: React.FC = ({ children }) => {
             {(formProps) => (
               <Form>
                 <DialogTitle {...sp?.dialogTitleProps}>{title}</DialogTitle>
+
                 <DialogContent
                   style={dialogContentStyle}
                   {...sp?.dialogContentProps}
@@ -220,6 +198,7 @@ export const DialogProvider: React.FC = ({ children }) => {
                   </DialogContentText>
                   {!!fieldComponents.length && fieldComponents}
                 </DialogContent>
+
                 <DialogActions {...sp?.dialogActionsProps}>
                   {actionButtonHasComponent(cancelButton) ? (
                     cancelButton.component
@@ -239,7 +218,6 @@ export const DialogProvider: React.FC = ({ children }) => {
                     <Button
                       type="submit"
                       color="primary"
-                      onClick={closeDialog}
                       disabled={formProps.isSubmitting}
                       {...submitButton.props}
                     >
