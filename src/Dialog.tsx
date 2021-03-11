@@ -20,11 +20,13 @@ import { createContext, useContext } from "react";
 
 import { TextField } from "formik-material-ui";
 
-type FieldOptions = {
-  initialValue: any;
-  validationSchema?: Yup.AnySchema;
-  fieldProps?: FieldAttributes<any>;
-  component?: typeof Field;
+type DialogFields = {
+  [name: string]: {
+    initialValue: any;
+    validationSchema?: Yup.AnySchema;
+    fieldProps?: FieldAttributes<any>;
+    component?: typeof Field;
+  };
 };
 
 type DialogActionButton =
@@ -33,7 +35,7 @@ type DialogActionButton =
   | { component: React.ReactNode };
 
 // type DialogOptions<
-//   Fields extends { [name: string]: FieldOptions },
+//   Fields extends DialogFields = DialogFields,
 //   Values = Record<keyof Fields, string>
 // > = Partial<{
 //   title: string | React.ReactNode;
@@ -56,7 +58,7 @@ type DialogActionButton =
 // }>;
 
 type OpenDialog = <
-  Fields extends { [name: string]: FieldOptions },
+  Fields extends DialogFields,
   Values extends Record<keyof Fields, string>
 >(
   options: Partial<{
@@ -136,6 +138,8 @@ const DialogContext = createContext<ContextType>({
 });
 
 export const DialogProvider: React.FC = ({ children }) => {
+  // The warning [Warning: findDOMNode is deprecated in StrictMode.] is a known issue:
+  // https://stackoverflow.com/a/63729408
   const [value, dispatch] = useReducer(reducer, initialState);
   const {
     open,
