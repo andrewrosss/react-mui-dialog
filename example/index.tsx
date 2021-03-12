@@ -20,7 +20,7 @@ import {
   makeStyles,
   withStyles,
 } from "@material-ui/core";
-import { CheckboxWithLabel, Select, Switch } from "formik-material-ui";
+import { CheckboxWithLabel, Select } from "formik-material-ui";
 import { DialogProvider, useDialog } from "../.";
 
 import { Field } from "formik";
