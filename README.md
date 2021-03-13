@@ -16,6 +16,8 @@ npm install react-mui-dialog --save
 
 ## Getting Started
 
+Checkout the [codesandbox](https://codesandbox.io/s/react-mui-dialog-demo-b1wsx?file=/src/Demo.tsx) for working examples.
+
 In a nutshell there are 3 objects to know about.
 
 - `DialogProvider` - to be included near the root of the tree.
