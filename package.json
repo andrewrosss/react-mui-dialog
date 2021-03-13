@@ -37,6 +37,16 @@
   },
   "name": "react-mui-dialog",
   "author": "Andrew Ross",
+  "keywords": [
+    "react",
+    "reactjs",
+    "hooks",
+    "typescript",
+    "material-ui",
+    "dialog",
+    "formik",
+    "yup"
+  ],
   "module": "dist/react-mui-dialog.esm.js",
   "size-limit": [
     {
