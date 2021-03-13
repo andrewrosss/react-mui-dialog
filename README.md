@@ -116,7 +116,7 @@ export const NotificationButton = () => {
 
 This dialog config would yield something like:
 
-<img src='./assets/show-notifcation.png' width='600'/>
+<img src='https://github.com/andrewrosss/react-mui-dialog/blob/master/assets/show-notifcation.png?raw=true' width='600'/>
 
 And there we go, we can render this button somewhere in our app and can show the user a basic dialog.
 
@@ -195,7 +195,7 @@ openDialog({
 });
 ```
 
-<img src='./assets/delete.png' width='600'/>
+<img src='https://github.com/andrewrosss/react-mui-dialog/blob/master/assets/delete.png?raw=true' width='600'/>
 
 ### Dialog with fields
 
@@ -246,7 +246,7 @@ openDialog({
 
 This config would result in something like:
 
-<img src='./assets/subscribe.png' width='600'/>
+<img src='https://github.com/andrewrosss/react-mui-dialog/blob/master/assets/subscribe.png?raw=true' width='600'/>
 
 ### Dialog with Custom Fields
 
@@ -325,7 +325,7 @@ openDialog({
 
 This config would yeild something like:
 
-<img src='./assets/settings.png' width='600'/>
+<img src='https://github.com/andrewrosss/react-mui-dialog/blob/master/assets/settings.png?raw=true' width='600'/>
 
 ### Custom Everything
 
@@ -427,4 +427,4 @@ openDialog({
 
 Which would yield something like:
 
-<img src='./assets/custom.png' width='600'/>
+<img src='https://github.com/andrewrosss/react-mui-dialog/blob/master/assets/custom.png?raw=true' width='600'/>
