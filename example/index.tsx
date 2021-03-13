@@ -11,6 +11,7 @@ import {
   Checkbox,
   Container,
   CssBaseline,
+  Divider,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -25,12 +26,6 @@ import { DialogProvider, useDialog } from "../.";
 
 import { Field } from "formik";
 
-/**
- *
- * DEMO PAGE SETUP - centering, padding, group everything in a card ...
- *
- */
-
 const useStyles = makeStyles(theme => ({
   card: {
     marginTop: theme.spacing(8),
@@ -38,39 +33,30 @@ const useStyles = makeStyles(theme => ({
   box: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
+    alignItems: "start",
     gap: theme.spacing(2),
   },
+  heading: {
+    marginBottom: theme.spacing(1),
+  },
+  divider: {
+    width: "100%",
+  },
+  buttonContainer: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
 }));
-
-const App = () => {
-  const classes = useStyles();
-
-  return (
-    <DialogProvider>
-      <CssBaseline />
-      <Container maxWidth="sm">
-        <Card className={classes.card}>
-          <Box p={2} className={classes.box}>
-            <NotificationButton />
-            <DeleteButton />
-            <SubscribeButton />
-            <SettingsButton />
-            <ViewTermsButton />
-          </Box>
-        </Card>
-      </Container>
-    </DialogProvider>
-  );
-};
 
 /**
  *
  * ULTRA-BASIC DIALOG - essentially just a glorified button.
  *
  */
-
 const NotificationButton = () => {
+  const classes = useStyles();
   const { openDialog } = useDialog();
 
   const handleClick = () =>
@@ -99,58 +85,12 @@ const NotificationButton = () => {
     });
 
   return (
-    <Button variant="contained" color="primary" onClick={handleClick}>
-      Show Notification
-    </Button>
-  );
-};
-
-/**
- *
- * BASIC DIALOG - some basic customization
- *
- */
-
-const DeleteButton = () => {
-  const { closeDialog, openDialog } = useDialog();
-
-  const docId = "abcd1234";
-  const docName = "My Old Document";
-
-  const handleClick = () =>
-    openDialog({
-      title: "Delete this document?",
-      // a component this time
-      contentText: (
-        <Typography variant="body2" color="textSecondary">
-          You are about to delete the document <b>{docName}</b>. This cannot be
-          undone.
-        </Typography>
-      ),
-      // In this case we'll pass our own button components. Because we're
-      // passing our own component we have to handle closing the dialog
-      // when we click cancel
-      cancelButton: {
-        component: (
-          <CapitalizedButton onClick={closeDialog}>Cancel</CapitalizedButton>
-        ),
-      },
-      // NOTE: make sure to set type='submit' for the submit button
-      submitButton: {
-        component: (
-          <RedCapitalizedButton type="submit" variant="contained">
-            Yes I'm sure, delete this document
-          </RedCapitalizedButton>
-        ),
-      },
-      onSubmit: async () =>
-        alert(`Deleting document name [${docName}] with ID [${docId}]`),
-    });
-
-  return (
-    <RedCapitalizedButton variant="contained" onClick={handleClick}>
-      Delete
-    </RedCapitalizedButton>
+    <div className={classes.buttonContainer}>
+      <Typography color="textSecondary">Basic Dialog</Typography>
+      <Button variant="contained" color="primary" onClick={handleClick}>
+        Show Notification
+      </Button>
+    </div>
   );
 };
 
@@ -176,11 +116,63 @@ const RedCapitalizedButton = withStyles(theme => ({
 
 /**
  *
+ * BASIC DIALOG - some basic customization
+ *
+ */
+const DeleteButton = () => {
+  const classes = useStyles();
+  const { closeDialog, openDialog } = useDialog();
+
+  const docId = "abcd1234";
+  const docName = "My Old Document";
+
+  const handleClick = () =>
+    openDialog({
+      title: "Delete this document?",
+      // a component this time
+      contentText: (
+        <Typography color="textSecondary">
+          You are about to delete the document <b>{docName}</b>. This cannot be
+          undone.
+        </Typography>
+      ),
+      // In this case we'll pass our own button components. Because we're
+      // passing our own component we have to handle closing the dialog
+      // when we click cancel
+      cancelButton: {
+        component: (
+          <CapitalizedButton onClick={closeDialog}>Cancel</CapitalizedButton>
+        ),
+      },
+      // NOTE: make sure to set type='submit' for the submit button
+      submitButton: {
+        component: (
+          <RedCapitalizedButton type="submit" variant="contained">
+            Yes I'm sure, delete this document
+          </RedCapitalizedButton>
+        ),
+      },
+      onSubmit: async () =>
+        alert(`Deleting document name [${docName}] with ID [${docId}]`),
+    });
+
+  return (
+    <div className={classes.buttonContainer}>
+      <Typography color="textSecondary">Dialog with custom buttons</Typography>
+      <RedCapitalizedButton variant="contained" onClick={handleClick}>
+        Delete
+      </RedCapitalizedButton>
+    </div>
+  );
+};
+
+/**
+ *
  * LESS-BASIC DIALOG - render a text field with some simple validation
  *
  */
-
 const SubscribeButton = () => {
+  const classes = useStyles();
   const { openDialog } = useDialog();
 
   const handleClick = () =>
@@ -208,9 +200,12 @@ const SubscribeButton = () => {
     });
 
   return (
-    <Button variant="outlined" onClick={handleClick}>
-      Subscribe
-    </Button>
+    <div className={classes.buttonContainer}>
+      <Typography color="textSecondary">Dialog with fields</Typography>
+      <Button variant="outlined" onClick={handleClick}>
+        Subscribe
+      </Button>
+    </div>
   );
 };
 
@@ -219,8 +214,8 @@ const SubscribeButton = () => {
  * MEDIUM DIALOG - multiple custom fields
  *
  */
-
 const SettingsButton = () => {
+  const classes = useStyles();
   const { openDialog } = useDialog();
 
   const defaultSettings = {
@@ -290,31 +285,12 @@ const SettingsButton = () => {
     });
 
   return (
-    <Button variant="outlined" onClick={handleClick}>
-      Settings
-    </Button>
-  );
-};
-
-/**
- *
- * FULLY CUSTOM DIALOG - entire contents fo the dialog are user-provided. (BYOC - Bring your own components)
- *
- */
-
-const ViewTermsButton = () => {
-  const { openDialog, closeDialog } = useDialog();
-
-  const handleClick = () => {
-    openDialog({
-      customContent: <CustomForm onCancel={closeDialog} />,
-    });
-  };
-
-  return (
-    <Button variant="outlined" color="primary" onClick={handleClick}>
-      View Terms
-    </Button>
+    <div className={classes.buttonContainer}>
+      <Typography color="textSecondary">Dialog with custom fields</Typography>
+      <Button variant="outlined" onClick={handleClick}>
+        Settings
+      </Button>
+    </div>
   );
 };
 
@@ -392,6 +368,66 @@ const CustomForm: React.FC<{ onCancel: any }> = ({ onCancel }) => {
         </Button>
       </div>
     </form>
+  );
+};
+
+/**
+ *
+ * FULLY CUSTOM DIALOG - entire contents fo the dialog are user-provided. (BYOC - Bring your own components)
+ *
+ */
+const ViewTermsButton = () => {
+  const classes = useStyles();
+  const { openDialog, closeDialog } = useDialog();
+
+  const handleClick = () => {
+    openDialog({
+      customContent: <CustomForm onCancel={closeDialog} />,
+    });
+  };
+
+  return (
+    <div className={classes.buttonContainer}>
+      <Typography color="textSecondary">
+        Dialog with completely custom contents
+      </Typography>
+      <Button variant="outlined" color="primary" onClick={handleClick}>
+        View Terms
+      </Button>
+    </div>
+  );
+};
+
+/**
+ *
+ * DEMO PAGE SETUP - centering, padding, group everything in a card ...
+ *
+ */
+const App = () => {
+  const classes = useStyles();
+
+  return (
+    <DialogProvider>
+      <CssBaseline />
+      <Container maxWidth="sm">
+        <Card className={classes.card}>
+          <Box p={4} className={classes.box}>
+            <Typography variant="h5" className={classes.heading}>
+              Sample Configurations
+            </Typography>
+            <NotificationButton />
+            <Divider className={classes.divider} />
+            <DeleteButton />
+            <Divider className={classes.divider} />
+            <SubscribeButton />
+            <Divider className={classes.divider} />
+            <SettingsButton />
+            <Divider className={classes.divider} />
+            <ViewTermsButton />
+          </Box>
+        </Card>
+      </Container>
+    </DialogProvider>
   );
 };
 
