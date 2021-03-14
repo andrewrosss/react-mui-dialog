@@ -214,7 +214,7 @@ export const DialogProvider: React.FC = ({ children }) => {
                 </DialogContent>
 
                 <DialogActions {...sp?.dialogActionsProps}>
-                  {actionButtonHasComponent(cancelButton) ? (
+                  {cancelButton && 'component' in cancelButton ? (
                     cancelButton.component
                   ) : cancelButton ? (
                     <Button
@@ -226,7 +226,7 @@ export const DialogProvider: React.FC = ({ children }) => {
                       {cancelButton.children}
                     </Button>
                   ) : null}
-                  {actionButtonHasComponent(submitButton) ? (
+                  {submitButton && 'component' in submitButton ? (
                     submitButton.component
                   ) : submitButton ? (
                     <Button
@@ -258,9 +258,3 @@ const getInitialValues = (fields: DialogOptions["fields"]) => {
     ])
   );
 };
-
-function actionButtonHasComponent(
-  button: any
-): button is { component: React.ReactNode } {
-  return !!button?.component && React.isValidElement(button.component);
-}
