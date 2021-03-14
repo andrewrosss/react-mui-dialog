@@ -22,6 +22,7 @@ import { createContext, useContext } from "react";
 import type Lazy from "yup/lib/Lazy";
 import type Reference from "yup/lib/Reference";
 import { TextField } from "formik-material-ui";
+import startCase from 'lodash/startCase'
 import { useReducer } from "react";
 
 export type ActionButtonOptions =
@@ -33,6 +34,7 @@ export type FieldOptions<T extends string = string> = Record<
   T,
   {
     initialValue: any;
+    label?: string;
     fieldProps?: FieldAttributes<any>;
     component?: React.ReactNode;
   }
@@ -182,6 +184,7 @@ export const DialogProvider: React.FC = ({ children }) => {
         component={TextField}
         variant="outlined"
         fullWidth
+        label={fieldOptions?.label || startCase(name)}
         {...fieldOptions.fieldProps}
         name={name}
         key={name}
