@@ -185,16 +185,29 @@ const SubscribeButton = () => {
       // a 1:1 mapping between the keys below and fields in the form.
       fields: {
         emailAddress: {
-          // these parameters are sent to this particular formik <Field /> component
+          // behind the scenes this packages gathers all the initialValue
+          // values found in this "fields" object, constructs an
+          // 'initialValues' object and passes that to the <Formik /> component
           initialValue: "",
-          validationSchema: Yup.string()
-            .required("This field is required")
-            .email("Must be a valid email"),
-          fieldProps: { label: "Email Address", variant: "filled" },
+          // for convenience we could omit 'label' and react-mui-dialog would use this
+          // field's name for the label
+          label: "Email Address",
+          // These props are passed directly to the underlying
+          // formik <Field /> component.
+          fieldProps: { variant: "filled" },
         },
       },
+      // optional validationSchema, defined just as you would with
+      // formik, used to validate the fields.
+      validationSchema: Yup.object({
+        emailAddress: Yup.string()
+          .required("This field is required")
+          .email("Must be a valid email"),
+      }),
       cancelButton: { children: "No Thanks" },
       submitButton: { children: "Subscribe" },
+      // the keys of the fields object (above) are how you reference
+      // values received by the form (as is typical with formik)
       onSubmit: async ({ emailAddress }) =>
         alert(`Added email [${emailAddress}] to the mailing list!`),
     });
@@ -228,15 +241,10 @@ const SettingsButton = () => {
     openDialog({
       title: "Profile Settings",
       contentText: null,
-      // Render formik fields in the dialog by specifying fields (below), each
-      // key is used as the name of a field in the formik form. There is
-      // a 1:1 mapping between the keys below and fields in the form.
       fields: {
         username: {
-          // these parameters are sent to this particular formik <Field /> component
           initialValue: defaultSettings.username,
-          validationSchema: Yup.string().required("username cannot be empty"),
-          fieldProps: { label: "Username" },
+          // NOTE: we omit passing a label
         },
         // here we render something other than a text field by modifying
         // the props that are passed to the formik <Field /> component.
@@ -273,6 +281,11 @@ const SettingsButton = () => {
           ),
         },
       },
+      validationSchema: Yup.object({
+        username: Yup.string().required("username cannot be empty"),
+        onMailingList: Yup.boolean(),
+        notificationRetention: Yup.string(),
+      }),
       cancelButton: { children: "Close" },
       submitButton: {
         children: "Save",

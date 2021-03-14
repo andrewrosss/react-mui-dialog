@@ -16,10 +16,21 @@ import {
   DialogTitleProps,
   makeStyles,
 } from "@material-ui/core";
-import { Field, FieldAttributes, Form, Formik, FormikHelpers } from "formik";
+import {
+  Field,
+  FieldAttributes,
+  Form,
+  Formik,
+  FormikFormProps,
+  FormikHelpers,
+  FormikProps,
+} from "formik";
 import { createContext, useContext } from "react";
 
+import Lazy from "yup/lib/Lazy";
+import Reference from "yup/lib/Reference";
 import { TextField } from "formik-material-ui";
+import startCase from "lodash/startCase";
 import { useReducer } from "react";
 
 export type ActionButtonOptions =
@@ -31,10 +42,19 @@ export type FieldOptions<T extends string = string> = Record<
   T,
   {
     initialValue: any;
-    validationSchema?: Yup.AnySchema;
+    label?: string;
     fieldProps?: FieldAttributes<any>;
     component?: React.ReactNode;
   }
+>;
+
+/**
+ * Turns ObjectShape into a generic.
+ * See: https://github.com/jquense/yup/blob/3b67dc0b59c8cf05fb5ee00b1560a2ab68ca3918/src/object.ts#L30
+ */
+type YupObjectShape<T extends string> = Record<
+  T,
+  Yup.AnySchema | Reference | Lazy<any, any>
 >;
 
 export type DialogOptions<
@@ -45,6 +65,7 @@ export type DialogOptions<
   title: string | React.ReactNode;
   contentText: string | React.ReactNode;
   fields: Fields;
+  validationSchema: Yup.ObjectSchema<YupObjectShape<FieldNames>>;
   cancelButton: ActionButtonOptions;
   submitButton: ActionButtonOptions;
   onSubmit: (
@@ -53,10 +74,12 @@ export type DialogOptions<
   ) => Promise<any>;
   dialogProps: Omit<DialogProps, "open">;
   subcomponentProps: {
-    dialogTitleProps: DialogTitleProps;
-    dialogContentProps: DialogContentProps;
-    dialogContentTextProps: DialogContentTextProps;
-    dialogActionsProps: DialogActionsProps;
+    dialogTitleProps?: DialogTitleProps;
+    dialogContentProps?: DialogContentProps;
+    dialogContentTextProps?: DialogContentTextProps;
+    dialogActionsProps?: DialogActionsProps;
+    formikProps?: Partial<FormikProps<Values>>;
+    formikFormProps?: FormikFormProps;
   };
   customContent: undefined | React.ReactNode;
 }>;
@@ -100,6 +123,7 @@ const initialState: State = {
     dialogContentProps: {},
     dialogContentTextProps: {},
     dialogActionsProps: {},
+    formikProps: {},
   },
   customContent: undefined,
 };
@@ -136,6 +160,7 @@ export const DialogProvider: React.FC = ({ children }) => {
     title,
     contentText,
     fields,
+    validationSchema,
     cancelButton,
     submitButton,
     dialogProps,
@@ -144,7 +169,6 @@ export const DialogProvider: React.FC = ({ children }) => {
   } = value;
 
   const initialValues = getInitialValues(fields);
-  const validationSchema = getValidationSchema(fields);
 
   const openDialog: OpenDialog = options =>
     dispatch({ type: "open", payload: options as DialogOptions });
@@ -167,7 +191,8 @@ export const DialogProvider: React.FC = ({ children }) => {
       <Field
         component={TextField}
         variant="outlined"
-        fullwidth
+        fullWidth
+        label={fieldOptions?.label || startCase(name)}
         {...fieldOptions.fieldProps}
         name={name}
         key={name}
@@ -187,23 +212,27 @@ export const DialogProvider: React.FC = ({ children }) => {
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
             validateOnChange={false}
+            validateOnBlur={false}
+            {...sp?.formikProps}
           >
             {formProps => (
-              <Form>
+              <Form {...sp?.formikFormProps}>
                 <DialogTitle {...sp?.dialogTitleProps}>{title}</DialogTitle>
 
                 <DialogContent
                   className={classes.dialogContent}
                   {...sp?.dialogContentProps}
                 >
-                  <DialogContentText {...sp?.dialogContentTextProps}>
-                    {contentText}
-                  </DialogContentText>
+                  {contentText && (
+                    <DialogContentText {...sp?.dialogContentTextProps}>
+                      {contentText}
+                    </DialogContentText>
+                  )}
                   {!!fieldComponents.length && fieldComponents}
                 </DialogContent>
 
                 <DialogActions {...sp?.dialogActionsProps}>
-                  {actionButtonHasComponent(cancelButton) ? (
+                  {cancelButton && "component" in cancelButton ? (
                     cancelButton.component
                   ) : cancelButton ? (
                     <Button
@@ -215,7 +244,7 @@ export const DialogProvider: React.FC = ({ children }) => {
                       {cancelButton.children}
                     </Button>
                   ) : null}
-                  {actionButtonHasComponent(submitButton) ? (
+                  {submitButton && "component" in submitButton ? (
                     submitButton.component
                   ) : submitButton ? (
                     <Button
@@ -247,19 +276,3 @@ const getInitialValues = (fields: DialogOptions["fields"]) => {
     ])
   );
 };
-
-const getValidationSchema = (fields: DialogOptions["fields"]) => {
-  return Yup.object(
-    Object.fromEntries(
-      Object.entries(fields ?? {})
-        .map(([name, fieldOptions]) => [name, fieldOptions?.validationSchema])
-        .filter(([_, v]) => !!v)
-    )
-  );
-};
-
-function actionButtonHasComponent(
-  button: any
-): button is { component: React.ReactNode } {
-  return !!button?.component && React.isValidElement(button.component);
-}
