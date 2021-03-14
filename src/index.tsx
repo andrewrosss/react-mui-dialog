@@ -181,7 +181,7 @@ export const DialogProvider: React.FC = ({ children }) => {
       <Field
         component={TextField}
         variant="outlined"
-        fullwidth
+        fullWidth
         {...fieldOptions.fieldProps}
         name={name}
         key={name}
