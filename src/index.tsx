@@ -19,6 +19,8 @@ import {
 import { Field, FieldAttributes, Form, Formik, FormikHelpers } from "formik";
 import { createContext, useContext } from "react";
 
+import type Lazy from "yup/lib/Lazy";
+import type Reference from "yup/lib/Reference";
 import { TextField } from "formik-material-ui";
 import { useReducer } from "react";
 
@@ -31,10 +33,18 @@ export type FieldOptions<T extends string = string> = Record<
   T,
   {
     initialValue: any;
-    validationSchema?: Yup.AnySchema;
     fieldProps?: FieldAttributes<any>;
     component?: React.ReactNode;
   }
+>;
+
+/**
+ * Turns ObjectShape into a generic.
+ * See: https://github.com/jquense/yup/blob/3b67dc0b59c8cf05fb5ee00b1560a2ab68ca3918/src/object.ts#L30
+ */
+type YupObjectShape<T extends string> = Record<
+  T,
+  Yup.AnySchema | Reference | Lazy<any, any>
 >;
 
 export type DialogOptions<
@@ -45,6 +55,7 @@ export type DialogOptions<
   title: string | React.ReactNode;
   contentText: string | React.ReactNode;
   fields: Fields;
+  validationSchema: Yup.ObjectSchema<YupObjectShape<FieldNames>>;
   cancelButton: ActionButtonOptions;
   submitButton: ActionButtonOptions;
   onSubmit: (
@@ -136,6 +147,7 @@ export const DialogProvider: React.FC = ({ children }) => {
     title,
     contentText,
     fields,
+    validationSchema,
     cancelButton,
     submitButton,
     dialogProps,
@@ -144,7 +156,6 @@ export const DialogProvider: React.FC = ({ children }) => {
   } = value;
 
   const initialValues = getInitialValues(fields);
-  const validationSchema = getValidationSchema(fields);
 
   const openDialog: OpenDialog = options =>
     dispatch({ type: "open", payload: options as DialogOptions });
@@ -245,16 +256,6 @@ const getInitialValues = (fields: DialogOptions["fields"]) => {
       name,
       fieldOptions.initialValue,
     ])
-  );
-};
-
-const getValidationSchema = (fields: DialogOptions["fields"]) => {
-  return Yup.object(
-    Object.fromEntries(
-      Object.entries(fields ?? {})
-        .map(([name, fieldOptions]) => [name, fieldOptions?.validationSchema])
-        .filter(([_, v]) => !!v)
-    )
   );
 };
 
