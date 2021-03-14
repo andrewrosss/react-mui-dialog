@@ -48,6 +48,8 @@ export const App = () => {
 };
 ```
 
+**Note:** If you're using Material UI's ThemeProvider you probably want the DialogProvider to be a child of that component.
+
 Then in a nested component, hook into the dialog context. For example, let's create a button that will show the user a notification:
 
 ```jsx
