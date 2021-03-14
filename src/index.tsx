@@ -16,7 +16,7 @@ import {
   DialogTitleProps,
   makeStyles,
 } from "@material-ui/core";
-import { Field, FieldAttributes, Form, Formik, FormikHelpers } from "formik";
+import { Field, FieldAttributes, Form, Formik, FormikFormProps, FormikHelpers, FormikProps } from "formik";
 import { createContext, useContext } from "react";
 
 import type Lazy from "yup/lib/Lazy";
@@ -64,10 +64,12 @@ export type DialogOptions<
   ) => Promise<any>;
   dialogProps: Omit<DialogProps, "open">;
   subcomponentProps: {
-    dialogTitleProps: DialogTitleProps;
-    dialogContentProps: DialogContentProps;
-    dialogContentTextProps: DialogContentTextProps;
-    dialogActionsProps: DialogActionsProps;
+    dialogTitleProps?: DialogTitleProps;
+    dialogContentProps?: DialogContentProps;
+    dialogContentTextProps?: DialogContentTextProps;
+    dialogActionsProps?: DialogActionsProps;
+    formikProps?: Partial<FormikProps<Values>>
+    formikFormProps?: FormikFormProps
   };
   customContent: undefined | React.ReactNode;
 }>;
@@ -111,6 +113,7 @@ const initialState: State = {
     dialogContentProps: {},
     dialogContentTextProps: {},
     dialogActionsProps: {},
+    formikProps: {},
   },
   customContent: undefined,
 };
@@ -198,18 +201,20 @@ export const DialogProvider: React.FC = ({ children }) => {
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
             validateOnChange={false}
+            validateOnBlur={false}
+            {...sp?.formikProps}
           >
             {formProps => (
-              <Form>
+              <Form {...sp?.formikFormProps}>
                 <DialogTitle {...sp?.dialogTitleProps}>{title}</DialogTitle>
 
                 <DialogContent
                   className={classes.dialogContent}
                   {...sp?.dialogContentProps}
                 >
-                  <DialogContentText {...sp?.dialogContentTextProps}>
+                  {contentText && <DialogContentText {...sp?.dialogContentTextProps}>
                     {contentText}
-                  </DialogContentText>
+                  </DialogContentText>}
                   {!!fieldComponents.length && fieldComponents}
                 </DialogContent>
 
