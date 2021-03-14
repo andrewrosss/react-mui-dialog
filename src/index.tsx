@@ -16,13 +16,21 @@ import {
   DialogTitleProps,
   makeStyles,
 } from "@material-ui/core";
-import { Field, FieldAttributes, Form, Formik, FormikFormProps, FormikHelpers, FormikProps } from "formik";
+import {
+  Field,
+  FieldAttributes,
+  Form,
+  Formik,
+  FormikFormProps,
+  FormikHelpers,
+  FormikProps,
+} from "formik";
 import { createContext, useContext } from "react";
 
-import type Lazy from "yup/lib/Lazy";
-import type Reference from "yup/lib/Reference";
+import Lazy from "yup/lib/Lazy";
+import Reference from "yup/lib/Reference";
 import { TextField } from "formik-material-ui";
-import startCase from 'lodash/startCase'
+import startCase from "lodash/startCase";
 import { useReducer } from "react";
 
 export type ActionButtonOptions =
@@ -70,8 +78,8 @@ export type DialogOptions<
     dialogContentProps?: DialogContentProps;
     dialogContentTextProps?: DialogContentTextProps;
     dialogActionsProps?: DialogActionsProps;
-    formikProps?: Partial<FormikProps<Values>>
-    formikFormProps?: FormikFormProps
+    formikProps?: Partial<FormikProps<Values>>;
+    formikFormProps?: FormikFormProps;
   };
   customContent: undefined | React.ReactNode;
 }>;
@@ -215,14 +223,16 @@ export const DialogProvider: React.FC = ({ children }) => {
                   className={classes.dialogContent}
                   {...sp?.dialogContentProps}
                 >
-                  {contentText && <DialogContentText {...sp?.dialogContentTextProps}>
-                    {contentText}
-                  </DialogContentText>}
+                  {contentText && (
+                    <DialogContentText {...sp?.dialogContentTextProps}>
+                      {contentText}
+                    </DialogContentText>
+                  )}
                   {!!fieldComponents.length && fieldComponents}
                 </DialogContent>
 
                 <DialogActions {...sp?.dialogActionsProps}>
-                  {cancelButton && 'component' in cancelButton ? (
+                  {cancelButton && "component" in cancelButton ? (
                     cancelButton.component
                   ) : cancelButton ? (
                     <Button
@@ -234,7 +244,7 @@ export const DialogProvider: React.FC = ({ children }) => {
                       {cancelButton.children}
                     </Button>
                   ) : null}
-                  {submitButton && 'component' in submitButton ? (
+                  {submitButton && "component" in submitButton ? (
                     submitButton.component
                   ) : submitButton ? (
                     <Button
