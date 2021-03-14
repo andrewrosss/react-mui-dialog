@@ -216,7 +216,7 @@ openDialog({
   contentText:
     "To subscribe to this website, please enter your email address here. We will send updates occasionally.",
   // Render formik fields in the dialog by specifying fields (below), each
-  // key is used as a name for a field in the formik form. There is
+  // key is used as the name of a field in the formik form. There is
   // a 1:1 mapping between the keys below and fields in the form.
   fields: {
     emailAddress: {
@@ -224,17 +224,21 @@ openDialog({
       // values found in this "fields" object, constructs an
       // 'initialValues' object and passes that to the <Formik /> component
       initialValue: "",
-      // Optional Yup schema used to validate this fields, again this
-      // package will aggregate all the schemas, construct the
-      // Yup.object({}) schema, and pass that to <Formik />
-      validationSchema: Yup.string()
-        .required("This field is required")
-        .email("Must be a valid email"),
+      // for convenience we could omit 'label' and react-mui-dialog would use this
+      // field's name for the label
+      label: "Email Address",
       // These props are passed directly to the underlying
       // formik <Field /> component.
-      fieldProps: { label: "Email Address", variant: "filled" },
+      fieldProps: { variant: "filled" },
     },
   },
+  // optional validationSchema, defined just as you would with
+  // formik, used to validate the fields.
+  validationSchema: Yup.object({
+    emailAddress: Yup.string()
+      .required("This field is required")
+      .email("Must be a valid email"),
+  }),
   cancelButton: { children: "No Thanks" },
   submitButton: { children: "Subscribe" },
   // the keys of the fields object (above) are how you reference
@@ -273,22 +277,21 @@ openDialog({
   fields: {
     username: {
       initialValue: user.username,
-      validationSchema: Yup.string().required("username cannot be empty"),
-      fieldProps: { label: "Username" },
+      // NOTE: we omit passing a label
     },
     // here we render something other than a text field by modifying
     // the props that are passed to the formik <Field /> component.
     onMailingList: {
       initialValue: user.onMailingList,
       fieldProps: {
-        component: CheckboxWithLabel, // <-- here
+        component: CheckboxWithLabel,
         type: "checkbox",
         Label: { label: "Receive newsletter" },
       },
     },
     // Here we pass our own component, if [fieldName].component is
     // specified then this component will be rendered and
-    // [fieldName].fieldProps will be ignored (if present).
+    // [fieldName].fieldProps will be ignored.
     notificationRetention: {
       initialValue: user.notificationRetention,
       component: (
@@ -311,6 +314,11 @@ openDialog({
       ),
     },
   },
+  validationSchema: Yup.object({
+    username: Yup.string().required("username cannot be empty"),
+    onMailingList: Yup.boolean(),
+    notificationRetention: Yup.string(),
+  }),
   cancelButton: { children: "Close" },
   submitButton: {
     children: "Save",
