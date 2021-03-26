@@ -100,7 +100,7 @@ const reducer = (state: State, action: Actions): State => {
     case "close":
       return { ...state, open: false };
     case "reset":
-      return { ...state, ...initialState };
+      return initialState;
     default:
       return state;
   }
