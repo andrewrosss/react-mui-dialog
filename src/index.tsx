@@ -144,7 +144,7 @@ const useStyles = makeStyles(theme => ({
   dialogContent: {
     display: "flex",
     flexDirection: "column",
-    gap: theme.spacing(2),
+    gap: `${theme.spacing(2)}px`,
     marginBottom: theme.spacing(2),
   },
 }));
